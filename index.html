@@ -27,7 +27,7 @@
   // ===== Canvas & layout =====
   const cv = document.getElementById("game");
   const ctx = cv.getContext("2d");
-  let W = 0, H = 0, FW = 0, OX = 0, u = 1;
+  let W = 0, H = 0, FW = 0, OX = 0, u = 1, BASE = 0;
   let pw = 0, ph = 0, py = 0, invW = 0, invH = 0;
 
   // ===== Sprites =====
@@ -98,27 +98,28 @@
   let touching = false, targetX = 0;
   const keys = { left: false, right: false, fire: false };
 
-  // ===== Resize =====
+    // ===== Resize =====
   function resize() {
-    const oldFW = FW, oldH = H;
+    const oldFW = FW, oldH = H, oldBase = BASE;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    FW = Math.min(W, H * 0.7);
+    BASE = Math.min(W, H * 0.7);   // sprite size reference (same size as before)
+    FW = Math.min(W, H * 1.8);     // wide landscape playfield
     OX = (W - FW) / 2;
-    u = FW / 100;
-    pw = FW * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
+    u = BASE / 100;
+    pw = BASE * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
     py = H * 0.86;
-    invW = FW * 0.06; invH = invW * 0.75;
+    invW = BASE * 0.06; invH = invW * 0.75;
 
     if (oldFW && state === "playing") {
-      const sx = FW / oldFW, sy = H / oldH;
+      const sx = FW / oldFW, sy = H / oldH, ss = BASE / oldBase;
       invaders.forEach(a => { a.x *= sx; a.y *= sy; });
       [...pBullets, ...eBullets].forEach(b => { b.x *= sx; b.y *= sy; b.vy *= sy; });
-      px *= sx; ufo.x *= sx; invSpeed *= sx;
+      px *= sx; ufo.x *= sx; invSpeed *= ss;
       const hp = shields.map(s => s.hp);
       buildShields();
       shields.forEach((s, i) => { if (hp[i] !== undefined) s.hp = hp[i]; });
@@ -126,7 +127,6 @@
       px = FW / 2;
     }
   }
-  window.addEventListener("resize", resize);
 
   // ===== Setup =====
   function startGame() {
@@ -148,7 +148,8 @@
       invaders.push({ x: startX + c * (invW + gapX), y: startY + r * (invH + gapY), type, col: c, alive: true });
     }
     total = invaders.length;
-    invSpeed = FW * 0.04 * (1 + 0.15 * (level - 1));
+    invSpeed = BASE * 0.15 * (1 + 0.15 * (level - 1));
+
     dir = 1; eFire = 1.5;
     ufo.on = false; ufo.t = Math.random() * 10 + 12;
   }
