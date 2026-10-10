@@ -108,9 +108,9 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    FW = Math.min(W, H * 5);
+    FW = Math.min(W, H * 0.75);
     OX = (W - FW) / 2;
-    u = H / 100;
+    u = FW / 100;
     pw = FW * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
     py = H * 0.86;
     invW = FW * 0.06; invH = invW * 0.75;
