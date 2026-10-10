@@ -15,10 +15,22 @@
     -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   }
   canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; }
+    #rotate {
+    display: none; position: fixed; inset: 0; z-index: 10;
+    background: #000; color: #40ff60;
+    font: bold 22px "Courier New", monospace;
+    flex-direction: column; align-items: center; justify-content: center; text-align: center;
+  }
+  @media (orientation: portrait) { #rotate { display: flex; } }
+
 </style>
 </head>
 <body>
-<canvas id="game"></canvas>
+<div id="rotate">
+  <div style="font-size:64px">⟳</div>
+  ROTATE YOUR DEVICE
+  <div style="font-size:14px;color:#888;margin-top:8px">This game plays in landscape</div>
+</div>
 
 <script>
 (() => {
@@ -460,9 +472,26 @@
 
     ctx.restore();
   }
+    // ===== Landscape handling =====
+  function lockLandscape() {
+    const el = document.documentElement;
+    if (!document.fullscreenElement && el.requestFullscreen) {
+      el.requestFullscreen()
+        .then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock("landscape"))
+        .catch(() => {});
+    }
+  }
+
+  matchMedia("(orientation: portrait)").addEventListener("change", e => {
+    if (e.matches && state === "playing") paused = true;
+    touching = false;
+    keys.left = keys.right = keys.fire = false;
+  });
+
   // ===== Input: touch & mouse =====
   function pointerDown(x) {
     initAudio();
+    lockLandscape();
     if (state === "ready" || (state === "over" && overTimer <= 0)) { startGame(); return; }
     if (state !== "playing") return;
     if (paused) { paused = false; return; }
