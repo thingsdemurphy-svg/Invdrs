@@ -491,7 +491,7 @@
   // ===== Input: touch & mouse =====
   function pointerDown(x) {
     initAudio();
-    lockLandscape();
+   // lockLandscape();
     if (state === "ready" || (state === "over" && overTimer <= 0)) { startGame(); return; }
     if (state !== "playing") return;
     if (paused) { paused = false; return; }
