@@ -162,7 +162,7 @@
       invaders.push({ x: startX + c * (invW + gapX), y: startY + r * (invH + gapY), type, col: c, alive: true });
     }
     total = invaders.length;
-    invSpeed = BASE * 0.15 * (1 + 0.15 * (level - 1));
+    invSpeed = BASE * 0.08 * (1 + 0.08 * (level - 1));
 
     dir = 1; eFire = 1.5;
     ufo.on = false; ufo.t = Math.random() * 10 + 12;
