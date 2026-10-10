@@ -100,26 +100,28 @@
   const keys = { left: false, right: false, fire: false };
 
   // ===== Resize =====
-  function resize() {
-    const oldFW = FW, oldH = H;
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);;
+    function resize() {
+    const oldFW = FW, oldH = H, oldBase = BASE;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    FW = Math.min(W, H * 0.75);
-    OX = (W - FW) / 2;
-    u = FW / 100;
-    pw = FW * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
+    FW = W;                          // playfield = full screen width
+    OX = 0;
+    BASE = Math.min(W, H * 0.75);    // sprite/speed scale (independent of width)
+    u = BASE / 100;
+    pw = BASE * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
     py = H * 0.86;
-    invW = FW * 0.06; invH = invW * 0.75;
+    invW = BASE * 0.06; invH = invW * 0.75;
 
     if (oldFW && state === "playing") {
       const sx = FW / oldFW, sy = H / oldH;
       invaders.forEach(a => { a.x *= sx; a.y *= sy; });
       [...pBullets, ...eBullets].forEach(b => { b.x *= sx; b.y *= sy; b.vy *= sy; });
-      px *= sx; ufo.x *= sx; invSpeed *= sx;
+      px *= sx; ufo.x *= sx;
+      invSpeed *= BASE / oldBase;
       const hp = shields.map(s => s.hp);
       buildShields();
       shields.forEach((s, i) => { if (hp[i] !== undefined) s.hp = hp[i]; });
@@ -127,7 +129,8 @@
       px = FW / 2;
     }
   }
-  window.addEventListener("resize", resize);
+
+  // window.addEventListener("resize", resize);
 
   // ===== Setup =====
   function startGame() {
