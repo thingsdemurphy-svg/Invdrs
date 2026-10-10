@@ -31,6 +31,16 @@
   ROTATE YOUR DEVICE
   <div style="font-size:14px;color:#888;margin-top:8px">This game plays in landscape</div>
 </div>
+  <body>
+<div id="rotate">
+  <div style="font-size:64px">⟳</div>
+  ROTATE YOUR DEVICE
+  <div style="font-size:14px;color:#888;margin-top:8px">This game plays in landscape</div>
+</div>
+<canvas id="game"></canvas>
+
+<script>
+
 
 <script>
 (() => {
@@ -491,7 +501,7 @@
   // ===== Input: touch & mouse =====
   function pointerDown(x) {
     initAudio();
-   // lockLandscape();
+   lockLandscape();
     if (state === "ready" || (state === "over" && overTimer <= 0)) { startGame(); return; }
     if (state !== "playing") return;
     if (paused) { paused = false; return; }
@@ -557,8 +567,12 @@
     requestAnimationFrame(loop);
   }
 
+  window.addEventListener("resize", resize);
+  window.addEventListener("orientationchange", () => setTimeout(resize, 200));
+
   resize();
   requestAnimationFrame(loop);
+
 })();
 </script>
 </body>
