@@ -222,11 +222,11 @@
     if (state !== "playing") return;
 
     if (touching) {
-      const step = FW * 0.9 * dt;
+      const step = BASE * 1.2 * dt;
       px += clamp(targetX - px, -step, step);
     }
-    if (keys.left) px -= FW * 0.6 * dt;
-    if (keys.right) px += FW * 0.6 * dt;
+    if (keys.left) px -= BASE * 0.8 * dt;
+    if (keys.right) px += BASE * 0.8 * dt;
     px = clamp(px, pw / 2, FW - pw / 2);
 
     fireCd -= dt;
