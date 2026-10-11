@@ -103,7 +103,7 @@
     function resize() {
     const oldFW = FW, oldH = H, oldBase = BASE;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    W = window.innerWidth; H = window.innerHeight;
+    H = window.innerHeight; W = (H / 0.75)
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
