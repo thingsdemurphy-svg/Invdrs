@@ -103,12 +103,12 @@
     function resize() {
     const oldFW = FW, oldH = H, oldBase = BASE;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    H = window.innerHeight; W = (H / 0.75)
+    W = window.innerWidth; H = window.innerHeight;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    FW = W;                          // playfield = full screen width
+    FW = (H / 0.75);                          // playfield = full screen width
     OX = 0;
     BASE = Math.min(W, H);    // sprite/speed scale (independent of width)
     u = BASE / 100;
@@ -222,11 +222,11 @@
     if (state !== "playing") return;
 
     if (touching) {
-      const step = BASE * 1.2 * dt;
+      const step = FW * 0.9 * dt;
       px += clamp(targetX - px, -step, step);
     }
-    if (keys.left) px -= BASE * 0.8 * dt;
-    if (keys.right) px += BASE * 0.8 * dt;
+    if (keys.left) px -= FW * 0.6 * dt;
+    if (keys.right) px += FW * 0.6 * dt;
     px = clamp(px, pw / 2, FW - pw / 2);
 
     fireCd -= dt;
