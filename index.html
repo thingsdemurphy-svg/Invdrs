@@ -108,8 +108,8 @@
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.imageSmoothingEnabled = false;
 
-    FW = (H / 0.75);                          // playfield = full screen width
-    OX = 0;
+    FW = Math.min(W, H / 0.75);
+    OX = (W - FW) / 2;
     BASE = Math.min(W, H);    // sprite/speed scale (independent of width)
     u = BASE / 100;
     pw = BASE * 0.09; ph = pw * (PLAYER_PATTERN.length / PLAYER_PATTERN[0].length);
