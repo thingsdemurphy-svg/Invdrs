@@ -105,9 +105,15 @@
 
   let px = 0, fireCd = 0, invuln = 0;
   let pBullets = [], eBullets = [], invaders = [], shields = [], booms = [];
-  let dir = 1, invSpeed = 0, total = 55, frame = 0, animT = 0, eFire = 1.5;
+  let dir = 1, invSpeed = 0, total = 55, eFire = 1.5;
+let stepIdx = 0;        // which alien moves next
+let stepAcc = 0;        // time accumulator for steps
+let dropping = false;   // this pass moves aliens down instead of sideways
+let edgeHit = false;    // an alien touched the edge during this pass
+
   const ufo = { on: false, x: 0, dir: 1, t: 15 };
   const stars = Array.from({ length: 90 }, () => [Math.random(), Math.random(), Math.random()]);
+
 
   let touching = false, targetX = 0;
   const keys = { left: false, right: false, fire: false };
@@ -157,14 +163,18 @@
     const gapX = invW * 0.45, gapY = invH * 0.6;
     const startX = (FW - (cols * invW + (cols - 1) * gapX)) / 2;
     const startY = H * 0.13 + Math.min(level - 1, 5) * invH * 0.5;
-    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const type = r === 0 ? 0 : r < 3 ? 1 : 2;
-      invaders.push({ x: startX + c * (invW + gapX), y: startY + r * (invH + gapY), type, col: c, alive: true });
-    }
-    total = invaders.length;
-    invSpeed = BASE * 0.08 * (1 + 0.08 * (level - 1));
+    for (let r = rows - 1; r >= 0; r--) for (let c = 0; c < cols; c++) {
+  const type = r === 0 ? 0 : r < 3 ? 1 : 2;
+  invaders.push({ x: startX + c * (invW + gapX), y: startY + r * (invH + gapY), type, col: c, alive: true, frame: 0 });
+}
 
-    dir = 1; eFire = 1.5;
+    
+  total = invaders.length;
+  invSpeed = BASE * 0.08 * (1 + 0.08 * (level - 1));
+
+  dir = 1; eFire = 1.5;
+  stepIdx = 0; stepAcc = 0; dropping = false; edgeHit = false;
+
     ufo.on = false; ufo.t = Math.random() * 10 + 12;
   }
 
@@ -221,6 +231,35 @@
     return false;
   }
   // ===== Update =====
+  function stepOneAlien() {
+  const n = invaders.length;
+  const margin = u * 2;
+  const stepX = invW * 0.15;
+
+  for (let guard = 0; guard <= n; guard++) {
+    if (stepIdx >= n) {                 // finished a full pass through the fleet
+      stepIdx = 0;
+      if (dropping) { dropping = false; dir = -dir; }
+      else if (edgeHit) { dropping = true; edgeHit = false; }
+      beep(MARCH_NOTES[marchIdx], 0.09, "square", 0.06);
+      marchIdx = (marchIdx + 1) % MARCH_NOTES.length;
+    }
+    const a = invaders[stepIdx++];
+    if (!a.alive) continue;             // skip dead aliens
+
+    if (dropping) {
+      a.y += invH * 0.5;
+    } else {
+      a.x += dir * stepX;
+      if ((dir > 0 && a.x + invW + stepX > FW - margin) ||
+          (dir < 0 && a.x - stepX < margin)) edgeHit = true;
+    }
+    a.frame ^= 1;                       // only this alien changes animation frame
+    return;
+  }
+}
+
+  
   function update(dt) {
     stars.forEach(s => { s[1] = (s[1] + dt * 0.02 * (0.5 + s[2])) % 1; });
     booms.forEach(b => b.t -= dt);
@@ -257,25 +296,12 @@
       return;
     }
 
-    const speedMul = 1 + 3.5 * (1 - alive.length / total);
-    const spd = invSpeed * speedMul;
-    alive.forEach(a => a.x += dir * spd * dt);
+    const stepRate = 60 * (1 + 0.1 * (level - 1));   // alien moves per second
+stepAcc += dt * stepRate;
+const steps = Math.min(Math.floor(stepAcc), 8);   // cap steps after a lag spike
+stepAcc -= Math.floor(stepAcc);
+for (let i = 0; i < steps; i++) stepOneAlien();
 
-    const margin = u * 2;
-    const minX = Math.min(...alive.map(a => a.x));
-    const maxX = Math.max(...alive.map(a => a.x + invW));
-    if ((dir > 0 && maxX > FW - margin) || (dir < 0 && minX < margin)) {
-      dir = -dir;
-      const fix = dir > 0 ? margin - minX : (FW - margin) - maxX;
-      alive.forEach(a => { a.x += fix; a.y += invH * 0.5; });
-    }
-
-    animT += dt;
-    if (animT > 0.6 / speedMul) {
-      animT = 0; frame = 1 - frame;
-      beep(MARCH_NOTES[marchIdx], 0.09, "square", 0.06);
-      marchIdx = (marchIdx + 1) % MARCH_NOTES.length;
-    }
 
     for (const a of alive) {
       for (const s of shields) {
@@ -393,7 +419,8 @@
       ctx.globalAlpha = 1;
 
       // Invaders
-      for (const a of invaders) if (a.alive) ctx.drawImage(invSprites[a.type][frame], a.x, a.y, invW, invH);
+      for (const a of invaders) if (a.alive) ctx.drawImage(invSprites[a.type][a.frame], a.x, a.y, invW, invH);
+
 
       // UFO
       if (ufo.on) {
